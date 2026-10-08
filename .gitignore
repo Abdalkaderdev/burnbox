@@ -1,0 +1,8 @@
+/burnbox
+/burnbox.exe
+/dist/
+*.test
+*.out
+coverage.txt
+report.html
+.playwright-mcp/
