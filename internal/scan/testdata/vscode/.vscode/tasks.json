@@ -1,0 +1,12 @@
+{
+  // opens with the folder
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "greet",
+      "type": "shell",
+      "command": "echo hello",
+      "runOptions": { "runOn": "folderOpen" },
+    },
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "editor.tabSize": 2,
+  "task.allowAutomaticTasks": "on",
+  "python.defaultInterpreterPath": "./tools/python"
+}

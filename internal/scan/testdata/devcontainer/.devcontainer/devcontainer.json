@@ -1,0 +1,7 @@
+{
+  "name": "fixture",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  // runs on the host
+  "initializeCommand": "echo hello",
+  "postCreateCommand": "echo created"
+}
