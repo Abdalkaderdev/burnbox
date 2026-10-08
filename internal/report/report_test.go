@@ -49,7 +49,7 @@ func TestOutputs(t *testing.T) {
 			t.Errorf("html missing %q", want)
 		}
 	}
-	if strings.ContainsAny(h.String(), "—–") {
+	if strings.ContainsAny(h.String(), "\u2014\u2013") {
 		t.Error("html contains an em or en dash")
 	}
 	var txt bytes.Buffer
