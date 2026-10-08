@@ -1,0 +1,68 @@
+name: burnbox
+description: Scan an untrusted repository and optionally run a command in a locked-down, offline Docker sandbox.
+author: abdalkaderdev
+branding:
+  icon: shield
+  color: orange
+
+inputs:
+  path:
+    description: Repository path or git URL to inspect.
+    default: .
+  run:
+    description: Command to run in the sandbox, e.g. "npm install && npm test". Empty means static scan only.
+    default: ""
+  fail-on:
+    description: Lowest verdict that fails the step (REVIEW or DANGEROUS).
+    default: DANGEROUS
+  version:
+    description: burnbox version to install.
+    default: latest
+
+outputs:
+  verdict:
+    description: CLEAN, REVIEW or DANGEROUS.
+    value: ${{ steps.scan.outputs.verdict }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v5
+      with:
+        go-version: stable
+        cache: false
+    - shell: bash
+      env:
+        BURNBOX_VERSION: ${{ inputs.version }}
+      run: go install "github.com/Abdalkaderdev/burnbox/cmd/burnbox@${BURNBOX_VERSION}"
+    - id: scan
+      shell: bash
+      env:
+        TARGET: ${{ inputs.path }}
+        RUN_CMD: ${{ inputs.run }}
+        FAIL_ON: ${{ inputs.fail-on }}
+        FORCE_COLOR: "1"
+      run: |
+        args=("$TARGET" --report burnbox-report.html)
+        if [ -n "$RUN_CMD" ]; then args+=(--run "$RUN_CMD"); fi
+        set +e
+        burnbox "${args[@]}"
+        code=$?
+        set -e
+        case $code in
+          0) verdict=CLEAN ;;
+          1) verdict=REVIEW ;;
+          2) verdict=DANGEROUS ;;
+          *) exit "$code" ;;
+        esac
+        echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+        if [ "$verdict" = DANGEROUS ] || { [ "$verdict" = REVIEW ] && [ "$FAIL_ON" = REVIEW ]; }; then
+          echo "::error::burnbox verdict: $verdict"
+          exit 1
+        fi
+    - if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: burnbox-report
+        path: burnbox-report.html
+        if-no-files-found: ignore
