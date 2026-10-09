@@ -4,5 +4,5 @@
 *.test
 *.out
 coverage.txt
-report.html
+/report.html
 .playwright-mcp/

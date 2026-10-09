@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>burnbox report: {{.Target}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --line: #222222;
+  --text: #ededed;
+  --muted: #8a8a8a;
+  --faint: #5c5c5c;
+  --accent: #f44e00;
+  --accent-soft: rgba(244, 78, 0, 0.12);
+  --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+main { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+a { color: var(--text); text-decoration-color: var(--accent); text-underline-offset: 3px; }
+code, pre, .mono { font-family: var(--mono); font-size: 13px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.brand { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: -0.01em; }
+.brand span { color: var(--accent); }
+.meta { color: var(--muted); font-family: var(--mono); font-size: 12px; text-align: right; overflow-wrap: anywhere; }
+.verdict { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 64px; padding: 56px 0 48px; border-bottom: 1px solid var(--line); }
+.verdict h1 { margin: 0; font-size: clamp(44px, 8vw, 80px); line-height: 1; font-weight: 600; letter-spacing: -0.045em; }
+.v-DANGEROUS h1, .v-REVIEW h1 { color: var(--accent); }
+.v-REVIEW h1 { color: transparent; -webkit-text-stroke: 1.5px var(--accent); }
+.verdict p.target { margin: 16px 0 0; color: var(--muted); font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+.reasons { margin: 0; padding: 0; list-style: none; }
+.reasons li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.reasons li:first-child { padding-top: 0; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 28px; }
+.stats div { padding-right: 12px; }
+.stats b { display: block; font: 500 22px/1.2 var(--mono); }
+.stats span { color: var(--muted); font-size: 12px; }
+section { padding-top: 48px; }
+h2 { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+.sub { margin: 0 0 24px; color: var(--muted); max-width: 65ch; }
+.finding { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
+.sev { font: 500 11px/1 var(--mono); text-transform: uppercase; padding: 6px 0; text-align: center; border: 1px solid var(--line); color: var(--muted); align-self: start; }
+.sev-high { background: var(--accent); border-color: var(--accent); color: #0a0a0a; }
+.sev-medium { border-color: var(--accent); color: var(--accent); }
+.loc { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+.rule { color: var(--faint); margin-left: 8px; }
+.finding p { margin: 6px 0 0; color: var(--muted); max-width: 75ch; }
+pre { margin: 10px 0 0; padding: 10px 12px; background: var(--surface); border-left: 2px solid var(--line); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
+.finding.high pre { border-left-color: var(--accent); }
+.run { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); margin-bottom: 24px; }
+.run div { padding: 14px 16px; border-right: 1px solid var(--line); }
+.run div:last-child { border-right: 0; }
+.run span { display: block; color: var(--muted); font-size: 12px; }
+.run b { font: 500 14px/1.4 var(--mono); overflow-wrap: anywhere; }
+.empty { padding: 20px 0; border-top: 1px solid var(--line); color: var(--muted); }
+details { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 16px; }
+summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+details pre { max-height: 420px; overflow: auto; }
+footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: 13px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 760px) {
+  main { padding: 28px 16px 56px; }
+  .verdict { grid-template-columns: 1fr; gap: 28px; padding: 36px 0; }
+  .stats, .run { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .run div:nth-child(2) { border-right: 0; }
+  .run div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .finding { grid-template-columns: 1fr; gap: 8px; }
+  .sev { justify-self: start; padding: 6px 10px; }
+  .meta { text-align: left; }
+}
+@media print {
+  html, body { background: #fff; color: #111; }
+  .sev-high { color: #fff; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="brand">burnbox<span>_</span></div>
+  <div class="meta">{{.Version}} &nbsp; {{.CreatedAt.Format "2006-01-02 15:04 UTC"}}{{if .Commit}} &nbsp; commit {{printf "%.12s" .Commit}}{{end}}</div>
+</header>
+
+<div class="verdict v-{{.Verdict}}">
+  <div>
+    <h1>{{.Verdict}}</h1>
+    <p class="target">{{.Target}}</p>
+  </div>
+  <div>
+    {{if .Reasons}}
+    <ul class="reasons">{{range .Reasons}}<li>{{.}}</li>{{end}}</ul>
+    {{else}}
+    <ul class="reasons"><li>No high-severity static findings{{if .Sandbox}}, and nothing in the sandbox touched the decoys or tried to reach the network{{end}}.</li></ul>
+    {{end}}
+    <div class="stats">
+      <div><b>{{.Static.Files}}</b><span>files scanned</span></div>
+      <div><b>{{.Count "high"}}</b><span>high</span></div>
+      <div><b>{{.Count "medium"}}</b><span>medium</span></div>
+      <div><b>{{.StaticMS}}ms</b><span>scan time</span></div>
+    </div>
+  </div>
+</div>
+
+<section>
+  <h2>Static scan</h2>
+  <p class="sub">Read without running anything: install hooks, editor and container auto-run settings, risky code constructs and dependency names.</p>
+  {{range .Static.Findings}}
+  <div class="finding {{.Severity}}">
+    <div class="sev sev-{{.Severity}}">{{.Severity}}</div>
+    <div>
+      <div class="loc">{{.File}}{{if .Line}}:{{.Line}}{{end}}<span class="rule">{{.Rule}}</span></div>
+      {{if .Snippet}}<pre>{{.Snippet}}</pre>{{end}}
+      <p>{{.Explanation}}</p>
+    </div>
+  </div>
+  {{else}}
+  <div class="empty">No findings.</div>
+  {{end}}
+</section>
+
+{{with .Sandbox}}
+<section>
+  <h2>Sandbox run</h2>
+  <p class="sub">Executed in a container with no network, all capabilities dropped, a read-only copy of the repository and a home directory full of labelled decoy credentials.</p>
+  <div class="run">
+    <div><span>command</span><b>{{.Command}}</b></div>
+    <div><span>exit code</span><b>{{if .TimedOut}}timed out{{else}}{{.ExitCode}}{{end}}</b></div>
+    <div><span>duration</span><b>{{secs .DurationMS}}</b></div>
+    <div><span>processes</span><b>{{len .Processes}}</b></div>
+  </div>
+  {{range .Events}}
+  <div class="finding {{.Severity}}">
+    <div class="sev sev-{{.Severity}}">{{.Severity}}</div>
+    <div>
+      <div class="loc">{{.Summary}}<span class="rule">{{.Kind}}</span></div>
+      {{if .Detail}}<p>{{.Detail}}</p>{{end}}
+    </div>
+  </div>
+  {{else}}
+  <div class="empty">Nothing opened the decoy files, looked up a hostname or tried to connect anywhere.</div>
+  {{end}}
+  {{if .Processes}}
+  <details>
+    <summary>Processes spawned ({{len .Processes}})</summary>
+    <pre>{{range .Processes}}{{.}}
+{{end}}</pre>
+  </details>
+  {{end}}
+  {{if .OutputTail}}
+  <details>
+    <summary>Command output (last 4 KB)</summary>
+    <pre>{{.OutputTail}}</pre>
+  </details>
+  {{end}}
+</section>
+{{end}}
+
+<footer>
+  <span>burnbox is a second opinion, not a guarantee. Read the findings before trusting the verdict.</span>
+  <a href="https://github.com/Abdalkaderdev/burnbox">github.com/Abdalkaderdev/burnbox</a>
+</footer>
+</main>
+</body>
+</html>
